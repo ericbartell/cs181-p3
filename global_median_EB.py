@@ -11,7 +11,9 @@ test_file  = 'test.csv'
 soln_file  = 'global_median.csv'
 
 pro_file = 'profiles.csv'
+pro_file = 'profiles_fixed.csv'
 artist_file = 'artists.csv'
+artist_file = 'artists_feature_matrix.csv'
 
 artist_count_file = 'dict_total_plays_artist.csv'
 user_count_file = 'dict_total_plays_listener.csv'
@@ -26,7 +28,7 @@ with open(train_file, 'r') as train_fh:
     next(train_csv, None)
     for row in train_csv:
         counter += 1
-        if counter > 10000:
+        if counter > 100:
             break
         user   = row[0]
         artist = row[1]
@@ -47,7 +49,7 @@ with open(pro_file, 'r') as users_fh:
     for row in users_csv:
         user = row[0]
         data = row[1:0]
-        # user_data[user] = data
+        user_data[user] = data
         row_user_dict_index[user] = counter
         counter += 1
 
@@ -61,7 +63,7 @@ with open(artist_file, 'r') as artists_fh:
     for row in artists_csv:
         artist = row[0]
         data = row[1:0]
-        # artist_data[artist] = data
+        artist_data[artist] = data
         column_artist_dict_index[artist] = counter
         counter += 1
 
