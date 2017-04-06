@@ -13,7 +13,7 @@ soln_file  = 'global_median.csv'
 pro_file = 'profiles.csv'
 pro_file = 'profiles_fixed.csv'
 artist_file = 'artists.csv'
-artist_file = 'artists_feature_matrix.csv'
+artist_file = 'artist_feature_matrix.csv'
 
 artist_count_file = 'dict_total_plays_artist.csv'
 user_count_file = 'dict_total_plays_listener.csv'
