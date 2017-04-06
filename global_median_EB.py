@@ -30,9 +30,9 @@ with open(train_file, 'r') as train_fh:
     train_csv = csv.reader(train_fh, delimiter=',', quotechar='"')
     next(train_csv, None)
     for row in train_csv:
-        counter += 1
-        if counter > 1000:
-            break
+        # counter += 1
+        # if counter > 1000:
+        #     break
         user   = row[0]
         artist = row[1]
         plays  = int(row[2])
@@ -43,6 +43,7 @@ with open(train_file, 'r') as train_fh:
 
         train_data[user][artist] = plays
 
+print("loading profiles")
 row_user_dict_index = {}
 counter = 0
 user_data = {}
@@ -56,7 +57,7 @@ with open(pro_file, 'r') as users_fh:
         row_user_dict_index[user] = counter
         counter += 1
 
-
+print("loading artists")
 column_artist_dict_index = {}
 counter = 0
 artist_data = {}
@@ -72,6 +73,7 @@ with open(artist_file, 'r') as artists_fh:
 
 
 ##########################open cluster files
+print("loading clusterings 1")
 #key_value
 art_cluster_dict = {}
 cluster_art_dict = {}
@@ -86,6 +88,7 @@ with open(artist_cluster_file,'r') as art_cl_fh:
                 cluster_art_dict[rowCounter].append(artist)
             else:
                 cluster_art_dict[rowCounter] = [artist]
+print("loading clusterings 2")
 user_cluster_dict = {}
 cluster_user_dict = {}
 with open(user_cluster_file,'r') as user_cl_fh:
@@ -99,9 +102,47 @@ with open(user_cluster_file,'r') as user_cl_fh:
                 cluster_user_dict[rowCounter].append(user)
             else:
                 cluster_user_dict[rowCounter] = [user]
-
+#key is (user_cluster,artist_cluster)
+cluster_interaction_dict = {}
 def predict(user,artist):
-    
+    user_cluster = user_cluster_dict[user]
+    artist_cluster = art_cluster_dict[artist]
+
+    if (user_cluster,artist_cluster) in cluster_interaction_dict:
+        #Yippeeeeeeeeee
+        out = cluster_interaction_dict[(user_cluster,artist_cluster)]
+    else:
+        interactions = []
+        for close_user in cluster_user_dict[user_cluster]:
+            for close_artist in cluster_art_dict[artist_cluster]:
+                #print close_user
+                #train_data[close_user]
+                if close_artist in train_data[close_user]:
+                    interactions.append(train_data[close_user][close_artist])
+        interSum = 0
+        if len(interactions) > 0:
+            for i in interactions:
+                interSum += i
+            interAvg = interSum*1.0/len(interactions)
+        else:
+            interAvg = -1 ###########################FIXME IM BROKEN use global average#############################################
+        cluster_interaction_dict[(user_cluster,artist_cluster)] = interAvg
+        out = interAvg
+    return out
+def predict_a_lot(listUsers,listArtists):
+    if len(listUsers) != len(listArtists):
+        print "wtf bruh, list sizes are different"
+    else:
+        predictions = []
+        for i in range(len(listUsers)):
+            predictions.append(listUsers[i],listArtists[i])
+    return predictions
+print(predict("306e19cce2522fa2d39ff5dfc870992100ec22d2","4ac4e32b-bd18-402e-adad-ae00e72f8d85"))
+exit()
+
+
+
+
 
 
 # count = 0
