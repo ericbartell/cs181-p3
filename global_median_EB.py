@@ -1,5 +1,6 @@
 import numpy as np
 import csv
+import pandas as pd
 
 # Predict via the median number of plays.
 from matplotlib import pyplot as plt
@@ -15,13 +16,18 @@ artist_file = 'artists.csv'
 artist_count_file = 'dict_total_plays_artist.csv'
 user_count_file = 'dict_total_plays_listener.csv'
 
-# Load the training data.
+
+############################### Load the training data.
+print("loading training data")
 train_data = {}
-# pairs = {}
+counter = 0
 with open(train_file, 'r') as train_fh:
     train_csv = csv.reader(train_fh, delimiter=',', quotechar='"')
     next(train_csv, None)
     for row in train_csv:
+        counter += 1
+        if counter > 10000:
+            break
         user   = row[0]
         artist = row[1]
         plays  = int(row[2])
@@ -34,21 +40,28 @@ with open(train_file, 'r') as train_fh:
 
 row_user_dict_index = {}
 counter = 0
+user_data = {}
 with open(pro_file, 'r') as users_fh:
     users_csv = csv.reader(users_fh, delimiter=',', quotechar='"')
     next(users_csv, None)
     for row in users_csv:
         user = row[0]
+        data = row[1:0]
+        # user_data[user] = data
         row_user_dict_index[user] = counter
         counter += 1
 
+
 column_artist_dict_index = {}
 counter = 0
+artist_data = {}
 with open(artist_file, 'r') as artists_fh:
     artists_csv = csv.reader(artists_fh, delimiter=',', quotechar='"')
     next(artists_csv, None)
     for row in artists_csv:
         artist = row[0]
+        data = row[1:0]
+        # artist_data[artist] = data
         column_artist_dict_index[artist] = counter
         counter += 1
 
@@ -74,25 +87,135 @@ def exampleEntry(dict,numExamples = 5):
         index = random.randint(0,len(keys))
         print("%s : %s" % (keys[index], dict[keys[index]]))
 
-# Load artist and listener specific data
+##################### Load artist and listener specific data
+print("loading artist data")
 artist_counts = {}
 user_counts = {}
+#########Artist
 with open(artist_count_file, 'r') as artist_fh:
     artist_csv = csv.reader(artist_fh, delimiter=',', quotechar='"')
-    next(artist_csv, None)
+    #next(artist_csv, None)
     for row in artist_csv:
         artist = row[0]
         plays = int(row[1])
         artist_counts[artist] = plays
 
 
+
+##########User
+print("loading user data")
 with open(user_count_file, 'r') as user_fh:
     user_csv = csv.reader(user_fh, delimiter=',', quotechar='"')
-    next(user_csv, None)
+    #next(user_csv, None)
     for row in user_csv:
         user = row[0]
+        #print (user)
+        #exit()
         plays = int(row[1])
         user_counts[user] = plays
+
+
+
+
+
+####################### make samples by features matrix
+print("make samples by feature")
+# each sample is a training interaction
+# many features
+dictInteractionToIndex = {}
+index = -1
+totalX = []
+totalY = []
+# print(user_counts.keys())
+listNotIncluded = {}
+for user in train_data.keys():
+    # if user not in user_counts:
+    #     #print ("wtf" + str(index))
+    #     if user not in listNotIncluded:
+    #         listNotIncluded[user] = 0
+    #     else:
+    #         listNotIncluded[user] = listNotIncluded[user] + 1
+    #     continue
+    #print(user_counts[user])
+    for artist in train_data[user].keys():
+        # if artist not in artist_counts:
+        #     #print ("wtf artist" + str(index))
+        #     if artist not in listNotIncluded:
+        #         listNotIncluded[artist] = 0
+        #     else:
+        #         listNotIncluded[artist] = listNotIncluded[artist] + 1
+        #     continue
+        interaction = user, artist
+        index += 1
+        dictInteractionToIndex[interaction] = index
+
+        rowY = [train_data[user][artist]]
+        rowX = []
+        # add artist data
+        rowX.append(artist_counts[artist])
+        if len(artist_data.keys())>0:
+            rowX.append(artist_data[artist])
+        # add user data
+        rowX.append(user_counts[user])
+        if len(user_data.keys())>0:
+            rowX.append(user_data[user])
+
+
+        totalX.append(rowX)
+        totalY.append(rowY)
+
+
+
+############################# RF
+print("starting RF")
+from sklearn.ensemble import RandomForestRegressor as RFR
+from sklearn.model_selection import cross_val_score
+
+model = RFR(criterion='mae') #USING MAF??
+
+print("training")
+#model.fit(totalX,totalY)
+scores = cross_val_score(model, totalX, totalY,cv=2,verbose=10)
+print(scores)
+exit()
+
+
+
+############################ Compute the global median.
+plays_array = []
+for user, user_data in train_data.iteritems():
+    for artist, plays in user_data.iteritems():
+        plays_array.append(plays)
+global_median = np.median(np.array(plays_array))
+print "global median:", global_median
+
+# Write out test solutions.
+with open(test_file, 'r') as test_fh:
+    test_csv = csv.reader(test_fh, delimiter=',', quotechar='"')
+    next(test_csv, None)
+
+    with open(soln_file, 'w') as soln_fh:
+        soln_csv = csv.writer(soln_fh,
+                              delimiter=',',
+                              quotechar='"',
+                              quoting=csv.QUOTE_MINIMAL)
+        soln_csv.writerow(['Id', 'plays'])
+
+        for row in test_csv:
+            id     = row[0]
+            user   = row[1]
+            artist = row[2]
+
+            soln_csv.writerow([id, global_median])
+
+
+
+
+
+
+
+
+######################## sparse matrix stuff
 
 
 import scipy.sparse as sparse
@@ -132,39 +255,5 @@ rf_train_X =artist_matrix.dot(user_matrix.transpose())
 print(rf_train_X.get_shape())
 
 
-# RF
-from sklearn.ensemble import RandomForestRegressor as RFR
-model = RFR()
 
-print("training")
-model.fit(rf_train_X,rf_train_Y)
-print(model.score())
-exit()
-
-
-# Compute the global median.
-plays_array = []
-for user, user_data in train_data.iteritems():
-    for artist, plays in user_data.iteritems():
-        plays_array.append(plays)
-global_median = np.median(np.array(plays_array))
-print "global median:", global_median
-
-# Write out test solutions.
-with open(test_file, 'r') as test_fh:
-    test_csv = csv.reader(test_fh, delimiter=',', quotechar='"')
-    next(test_csv, None)
-
-    with open(soln_file, 'w') as soln_fh:
-        soln_csv = csv.writer(soln_fh,
-                              delimiter=',',
-                              quotechar='"',
-                              quoting=csv.QUOTE_MINIMAL)
-        soln_csv.writerow(['Id', 'plays'])
-
-        for row in test_csv:
-            id     = row[0]
-            user   = row[1]
-            artist = row[2]
-
-            soln_csv.writerow([id, global_median])
+########################
