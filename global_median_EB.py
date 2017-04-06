@@ -18,6 +18,9 @@ artist_file = 'artist_feature_matrix.csv'
 artist_count_file = 'dict_total_plays_artist.csv'
 user_count_file = 'dict_total_plays_listener.csv'
 
+artist_cluster_file = 'clustered_artists.csv'
+user_cluster_file = 'clustered_users.csv'
+
 
 ############################### Load the training data.
 print("loading training data")
@@ -28,16 +31,16 @@ with open(train_file, 'r') as train_fh:
     next(train_csv, None)
     for row in train_csv:
         counter += 1
-        if counter > 100:
+        if counter > 1000:
             break
         user   = row[0]
         artist = row[1]
         plays  = int(row[2])
         # pairs["%s,%s" % (user,artist)] = 0
-    
+
         if not user in train_data:
             train_data[user] = {}
-        
+
         train_data[user][artist] = plays
 
 row_user_dict_index = {}
@@ -66,7 +69,40 @@ with open(artist_file, 'r') as artists_fh:
         artist_data[artist] = data
         column_artist_dict_index[artist] = counter
         counter += 1
-print artist_data
+
+
+##########################open cluster files
+#key_value
+art_cluster_dict = {}
+cluster_art_dict = {}
+with open(artist_cluster_file,'r') as art_cl_fh:
+    artCl_csv = csv.reader(art_cl_fh, delimiter=',', quotechar='"')
+    rowCounter = -1
+    for row in artCl_csv:
+        rowCounter +=1
+        for artist in row:
+            art_cluster_dict[artist] = rowCounter
+            if rowCounter in cluster_art_dict:
+                cluster_art_dict[rowCounter].append(artist)
+            else:
+                cluster_art_dict[rowCounter] = [artist]
+user_cluster_dict = {}
+cluster_user_dict = {}
+with open(user_cluster_file,'r') as user_cl_fh:
+    userCl_csv = csv.reader(user_cl_fh, delimiter=',', quotechar='"')
+    rowCounter = -1
+    for row in userCl_csv:
+        rowCounter +=1
+        for user in row:
+            user_cluster_dict[user] = rowCounter
+            if rowCounter in cluster_user_dict:
+                cluster_user_dict[rowCounter].append(user)
+            else:
+                cluster_user_dict[rowCounter] = [user]
+
+def predict(user,artist):
+    
+
 
 # count = 0
 # count_overlap = 0
@@ -156,11 +192,24 @@ for user in train_data.keys():
         # add artist data
         rowX.append(artist_counts[artist])
         for i in artist_data[artist]:
-            rowX.append(i)
+            try:
+                rowX.append(float(i))
+            except ValueError:
+                if i == "Male":
+                    rowX.append(1)
+                elif i == "Female":
+                    rowX.append(0)
+            #rowX.append(float(i))
         # add user data
         rowX.append(user_counts[user])
         for i in user_data[user]:
-            rowX.append(i)
+            try:
+                rowX.append(float(i))
+            except ValueError:
+                if i == "m":
+                    rowX.append(1)
+                elif i == "f":
+                    rowX.append(0)
 
 
         totalX.append(rowX)
