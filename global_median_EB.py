@@ -48,7 +48,7 @@ with open(pro_file, 'r') as users_fh:
     next(users_csv, None)
     for row in users_csv:
         user = row[0]
-        data = row[1:0]
+        data = row[1:]
         user_data[user] = data
         row_user_dict_index[user] = counter
         counter += 1
@@ -62,11 +62,11 @@ with open(artist_file, 'r') as artists_fh:
     next(artists_csv, None)
     for row in artists_csv:
         artist = row[0]
-        data = row[1:0]
+        data = row[1:]
         artist_data[artist] = data
         column_artist_dict_index[artist] = counter
         counter += 1
-
+print artist_data
 
 # count = 0
 # count_overlap = 0
@@ -155,12 +155,12 @@ for user in train_data.keys():
         rowX = []
         # add artist data
         rowX.append(artist_counts[artist])
-        if len(artist_data.keys())>0:
-            rowX.append(artist_data[artist])
+        for i in artist_data[artist]:
+            rowX.append(i)
         # add user data
         rowX.append(user_counts[user])
-        if len(user_data.keys())>0:
-            rowX.append(user_data[user])
+        for i in user_data[user]:
+            rowX.append(i)
 
 
         totalX.append(rowX)
@@ -169,6 +169,8 @@ for user in train_data.keys():
 
 
 ############################# RF
+print totalY[1]
+print totalX[1]
 print("starting RF")
 from sklearn.ensemble import RandomForestRegressor as RFR
 from sklearn.model_selection import cross_val_score
