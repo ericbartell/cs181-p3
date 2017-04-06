@@ -1,0 +1,37 @@
+Ideas for Practical 3:
+
+k-means clustering (or hierarchical clustering?, seems too slow):
+-> probably only on a subset unless it's fast enough
+-> cluster users into similar profiles by listening, other characteristics?
+-> can we cluster artists at all
+-> can we feature extract anything about artists (to use for clustering)
+
+Use : https://musicbrainz.org/doc/Developer_Resources
+-> probably use python-musicbrainzngs
+-> musicbrainzngs.get_artist_by_id()
+-> use the above for feature extraction on artists
+
+artist groups, user groups
+artist from 1, user from 10 -> estimate new pair as mean of group, scaled by particular user's # plays for artists from that group ?
+
+artist from 1, user from 10 -> estimate new pair as mean of 10-users that have listened to new artist, scale by average listens by particular user
+
+PCA to dimension reduce, but not as far as clustering would
+
+
+Step 1: our provided data is < 1% of the possible user/artist pairs
+-> read in train.csv to a dict or (sparse) dataframe?
+
+Step 2: feature extract on artists, cluster based on features
+
+Step 3: cluster users based on ?
+-> could be characteristics like gender, age, location
+-> could be by listening to same/similar artists (need artist clusters to do so)
+-> could be scaled by number of plays (or not, may want to only use this for scaling new estimated plays)
+-> will need to be able to use very sparse data [ALL our features are sparse]
+-> use a distance metric that accounts for absolute number of plays and a scaled number of plays
+-> will need to precalculate scaling factors for each user [iterate over all user/artist pairs]
+
+Will need to hold-out some pairs for validation, or do cross-val to estimate MAE (mean absolute error, lower is better).
+
+
