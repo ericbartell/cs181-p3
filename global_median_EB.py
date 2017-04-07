@@ -73,10 +73,15 @@ with open(artist_file, 'r') as artists_fh:
         counter += 1
 
 ############################ Compute the global median.
-plays_array = []
+plays_array  = []
+user_medians = {}
 for user, user_data in train_data.iteritems():
+    user_plays = []
     for artist, plays in user_data.iteritems():
         plays_array.append(plays)
+        user_plays.append(plays)
+
+    user_medians[user] = np.median(np.array(user_plays))
 global_median = np.median(np.array(plays_array))
 print "global median:", global_median
 ###########################Compute per artist mean
@@ -195,6 +200,7 @@ def predict(user,artist):
             interAvg = sum(interactions)*1.0/len(interactions)
         else:
             interAvg = global_median
+            #interAvg = user_medians[user] ################################################# can switch here to use user median default. also can increase threshold len(inters) > 0 to use this as only predictor
         cluster_interaction_dict[(user_cluster,artist_cluster)] = interAvg
         out = interAvg
 
