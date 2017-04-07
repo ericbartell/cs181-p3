@@ -172,7 +172,6 @@ for key in user_cluster_sums:
 #print(user_cluster_means)
 
 
-exit()
 #key is (user_cluster,artist_cluster)
 cluster_interaction_dict = {}
 def predict(user,artist):
