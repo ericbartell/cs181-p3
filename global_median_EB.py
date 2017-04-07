@@ -13,7 +13,7 @@ soln_file  = 'global_median.csv'
 pro_file = 'profiles.csv'
 pro_file = 'profiles_fixed.csv'
 artist_file = 'artists.csv'
-artist_file = 'artist_feature_matrix.csv'
+artist_file = 'artist_feature_matrix_fixed.csv'
 
 artist_count_file = 'dict_total_plays_artist.csv'
 user_count_file = 'dict_total_plays_listener.csv'
@@ -168,8 +168,8 @@ for key in artist_cluster_sums:
 user_cluster_means = {}
 for key in user_cluster_sums:
     user_cluster_means[key] = user_cluster_sums[key][0] * 1.0 / user_cluster_sums[key][1]
-print(artist_cluster_means)
-print(user_cluster_means)
+#print(artist_cluster_means)
+#print(user_cluster_means)
 
 
 exit()
@@ -182,6 +182,8 @@ def predict(user,artist):
     if (user_cluster,artist_cluster) in cluster_interaction_dict:
         #Yippeeeeeeeeee
         out = cluster_interaction_dict[(user_cluster,artist_cluster)]
+        out2 = out*user_means[user] / user_cluster_means[user_cluster_dict[user]] * artist_means[artist] * artist_cluster_means[
+            art_cluster_dict[artist]]
     else:
         interactions = []
         for close_user in cluster_user_dict[user_cluster]:
@@ -191,25 +193,25 @@ def predict(user,artist):
                 if close_artist in train_data[close_user]:
                     interactions.append(train_data[close_user][close_artist])
         interSum = 0
-        if len(interactions) > 0: # Is this equivalent to sum(interactions)?
-            for i in interactions:
-                interSum += i
-            interAvg = interSum*1.0/len(interactions)
+        if len(interactions) > 0:
+            interAvg = sum(interactions)*1.0/len(interactions)
         else:
             interAvg = global_median
         cluster_interaction_dict[(user_cluster,artist_cluster)] = interAvg
         out = interAvg
-    return out
+        out2 = out*user_means[user]/user_cluster_means[user_cluster_dict[user]]*artist_means[artist]*artist_cluster_means[art_cluster_dict[artist]]
+
+
+    return out,out2
 def predict_a_lot(listUsers,listArtists):
     if len(listUsers) != len(listArtists):
         print "wtf bruh, list sizes are different"
     else:
         predictions = []
         for i in range(len(listUsers)):
-            # How is this a prediction?
-            predictions.append(listUsers[i],listArtists[i])
+            predictions.append(predict(listUsers[i],listArtists[i]))
     return predictions
-print(predict("306e19cce2522fa2d39ff5dfc870992100ec22d2","4ac4e32b-bd18-402e-adad-ae00e72f8d85"))
+#print(predict("306e19cce2522fa2d39ff5dfc870992100ec22d2","4ac4e32b-bd18-402e-adad-ae00e72f8d85"))
 exit()
 
 
