@@ -191,7 +191,7 @@ def predict(user,artist):
                 if close_artist in train_data[close_user]:
                     interactions.append(train_data[close_user][close_artist])
         interSum = 0
-        if len(interactions) > 0:
+        if len(interactions) > 0: # Is this equivalent to sum(interactions)?
             for i in interactions:
                 interSum += i
             interAvg = interSum*1.0/len(interactions)
@@ -206,6 +206,7 @@ def predict_a_lot(listUsers,listArtists):
     else:
         predictions = []
         for i in range(len(listUsers)):
+            # How is this a prediction?
             predictions.append(listUsers[i],listArtists[i])
     return predictions
 print(predict("306e19cce2522fa2d39ff5dfc870992100ec22d2","4ac4e32b-bd18-402e-adad-ae00e72f8d85"))
