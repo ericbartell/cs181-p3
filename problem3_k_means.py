@@ -26,14 +26,14 @@ column_artist_dict_index = {}
 counter = 0
 artist_data = {}
 with open(artist_file, 'r') as artists_fh:
-    artists_csv = csv.reader(artists_fh, delimiter=',', quotechar='"')
-    next(artists_csv, None)
-    for row in artists_csv:
-        artist = row[0]
-        data = row[1:]
-        artist_data[artist] = data
-        column_artist_dict_index[artist] = counter
-        counter += 1
+	artists_csv = csv.reader(artists_fh, delimiter=',', quotechar='"')
+    #next(artists_csv, None)
+	for row in artists_csv:
+		artist = row[0]
+		data = row[1:]
+		artist_data[artist] = data
+		column_artist_dict_index[artist] = counter
+		counter += 1
 
 column_user_dict_index = {}
 counter = 0
@@ -66,6 +66,7 @@ def getUniques(data, columnIndex):
 #print(getUniques(artist_data,6))
 #for i in [0,1,2,6]:
 	#pass
+import random
 def make_one_hot(data, cols):
 	columnToColumns = {}
 	newData = {}
@@ -125,7 +126,10 @@ def make_one_hot(data, cols):
 	for key in newData.keys():
 		newRow = []
 		for i in range(len(newData[key])):
-			newRow.append((newData[key][i]*1.0-minRow[i])/(maxRow[i]-minRow[i]))
+			if maxRow[i]-minRow[i] == 0:
+				print(key)
+			else:
+				newRow.append((newData[key][i]*1.0-minRow[i])/(maxRow[i]-minRow[i]))
 		newData[key] = newRow
 		#print newRow
 
@@ -160,6 +164,7 @@ w = csv.writer(open("clustered_artists.csv", 'w'))
 for row in clusters:
     w.writerow(row)
 
+print("done writing")
 
 #print(kmeans.cluster_centers_)
 

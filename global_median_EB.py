@@ -51,6 +51,7 @@ with open(pro_file, 'r') as users_fh:
     users_csv = csv.reader(users_fh, delimiter=',', quotechar='"')
     next(users_csv, None)
     for row in users_csv:
+
         user = row[0]
         data = row[1:]
         user_data[user] = data
@@ -63,13 +64,47 @@ counter = 0
 artist_data = {}
 with open(artist_file, 'r') as artists_fh:
     artists_csv = csv.reader(artists_fh, delimiter=',', quotechar='"')
-    next(artists_csv, None)
+    #next(artists_csv, None)
     for row in artists_csv:
         artist = row[0]
         data = row[1:]
         artist_data[artist] = data
         column_artist_dict_index[artist] = counter
         counter += 1
+
+############################ Compute the global median.
+plays_array = []
+for user, user_data in train_data.iteritems():
+    for artist, plays in user_data.iteritems():
+        plays_array.append(plays)
+global_median = np.median(np.array(plays_array))
+print "global median:", global_median
+###########################Compute per artist mean
+###########################Compute per user mean
+artist_sums = {}
+user_sums = {}
+for user, user_data in train_data.iteritems():
+    for artist, plays in user_data.iteritems():
+        if user in user_sums:
+            user_sums[user][0] += plays
+            user_sums[user][1] += 1
+        else:
+            user_sums[user] = [plays,1]
+
+        if artist in artist_sums:
+            artist_sums[artist][0] += plays
+            artist_sums[artist][1] += 1
+        else:
+            artist_sums[artist] = [plays,1]
+artist_means = {}
+for key in artist_sums:
+    artist_means[key] = artist_sums[key][0]*1.0/artist_sums[key][1]
+
+user_means = {}
+for key in user_sums:
+    user_means[key] = user_sums[key][0]*1.0/user_sums[key][1]
+
+
 
 
 ##########################open cluster files
@@ -102,6 +137,42 @@ with open(user_cluster_file,'r') as user_cl_fh:
                 cluster_user_dict[rowCounter].append(user)
             else:
                 cluster_user_dict[rowCounter] = [user]
+
+###########################Compute per artist cluster mean
+###########################Compute per user cluster mean
+artist_cluster_sums = {}
+user_cluster_sums = {}
+
+
+for user, user_data in train_data.iteritems():
+    for artist, plays in user_data.iteritems():
+        #print(artist)
+        if user_cluster_dict[user] in user_cluster_sums:
+            user_cluster_sums[user_cluster_dict[user]][0] += plays
+            user_cluster_sums[user_cluster_dict[user]][1] += 1
+        else:
+            user_cluster_sums[user_cluster_dict[user]] = [plays, 1]
+
+        if artist not in art_cluster_dict:
+            print ("uhhhhh " + artist)
+            continue
+        if art_cluster_dict[artist] in artist_cluster_sums:
+            artist_cluster_sums[art_cluster_dict[artist]][0] += plays
+            artist_cluster_sums[art_cluster_dict[artist]][1] += 1
+        else:
+            artist_cluster_sums[art_cluster_dict[artist]] = [plays, 1]
+artist_cluster_means = {}
+for key in artist_cluster_sums:
+    artist_cluster_means[key] = artist_cluster_sums[key][0] * 1.0 / artist_cluster_sums[key][1]
+
+user_cluster_means = {}
+for key in user_cluster_sums:
+    user_cluster_means[key] = user_cluster_sums[key][0] * 1.0 / user_cluster_sums[key][1]
+print(artist_cluster_means)
+print(user_cluster_means)
+
+
+exit()
 #key is (user_cluster,artist_cluster)
 cluster_interaction_dict = {}
 def predict(user,artist):
@@ -125,7 +196,7 @@ def predict(user,artist):
                 interSum += i
             interAvg = interSum*1.0/len(interactions)
         else:
-            interAvg = -1 ###########################FIXME IM BROKEN use global average#############################################
+            interAvg = global_median
         cluster_interaction_dict[(user_cluster,artist_cluster)] = interAvg
         out = interAvg
     return out
@@ -143,6 +214,25 @@ exit()
 
 
 
+
+# Write out test solutions.
+with open(test_file, 'r') as test_fh:
+    test_csv = csv.reader(test_fh, delimiter=',', quotechar='"')
+    next(test_csv, None)
+
+    with open(soln_file, 'w') as soln_fh:
+        soln_csv = csv.writer(soln_fh,
+                              delimiter=',',
+                              quotechar='"',
+                              quoting=csv.QUOTE_MINIMAL)
+        soln_csv.writerow(['Id', 'plays'])
+
+        for row in test_csv:
+            id = row[0]
+            user = row[1]
+            artist = row[2]
+
+            soln_csv.writerow([id, global_median])
 
 
 # count = 0
@@ -273,34 +363,6 @@ scores = cross_val_score(model, totalX, totalY,cv=2,verbose=10)
 print(scores)
 exit()
 
-
-
-############################ Compute the global median.
-plays_array = []
-for user, user_data in train_data.iteritems():
-    for artist, plays in user_data.iteritems():
-        plays_array.append(plays)
-global_median = np.median(np.array(plays_array))
-print "global median:", global_median
-
-# Write out test solutions.
-with open(test_file, 'r') as test_fh:
-    test_csv = csv.reader(test_fh, delimiter=',', quotechar='"')
-    next(test_csv, None)
-
-    with open(soln_file, 'w') as soln_fh:
-        soln_csv = csv.writer(soln_fh,
-                              delimiter=',',
-                              quotechar='"',
-                              quoting=csv.QUOTE_MINIMAL)
-        soln_csv.writerow(['Id', 'plays'])
-
-        for row in test_csv:
-            id     = row[0]
-            user   = row[1]
-            artist = row[2]
-
-            soln_csv.writerow([id, global_median])
 
 
 
