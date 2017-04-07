@@ -93,21 +93,26 @@ for user, user_data in train_data.iteritems():
         if user in user_sums:
             user_sums[user][0] += plays
             user_sums[user][1] += 1
+            user_sums[user].append(plays)
         else:
-            user_sums[user] = [plays,1]
+            user_sums[user] = [plays,1,plays]
 
         if artist in artist_sums:
             artist_sums[artist][0] += plays
             artist_sums[artist][1] += 1
+            artist_sums[artist].append(plays)
         else:
-            artist_sums[artist] = [plays,1]
+            artist_sums[artist] = [plays,1,plays]
 artist_means = {}
 for key in artist_sums:
     artist_means[key] = artist_sums[key][0]*1.0/artist_sums[key][1]
+    artist_means[key] = np.median(artist_sums[key][2:])
 
 user_means = {}
 for key in user_sums:
     user_means[key] = user_sums[key][0]*1.0/user_sums[key][1]
+    user_means[key] = np.median(user_sums[key][2:])
+
 
 
 
@@ -155,8 +160,9 @@ for user, user_data in train_data.iteritems():
         if user_cluster_dict[user] in user_cluster_sums:
             user_cluster_sums[user_cluster_dict[user]][0] += plays
             user_cluster_sums[user_cluster_dict[user]][1] += 1
+            user_cluster_sums[user_cluster_dict[user]].append(plays)
         else:
-            user_cluster_sums[user_cluster_dict[user]] = [plays, 1]
+            user_cluster_sums[user_cluster_dict[user]] = [plays, 1,plays]
 
         if artist not in art_cluster_dict:
             print ("uhhhhh " + artist)
@@ -164,15 +170,20 @@ for user, user_data in train_data.iteritems():
         if art_cluster_dict[artist] in artist_cluster_sums:
             artist_cluster_sums[art_cluster_dict[artist]][0] += plays
             artist_cluster_sums[art_cluster_dict[artist]][1] += 1
+            artist_cluster_sums[art_cluster_dict[artist]].append(plays)
         else:
-            artist_cluster_sums[art_cluster_dict[artist]] = [plays, 1]
+            artist_cluster_sums[art_cluster_dict[artist]] = [plays, 1,plays]
+
 artist_cluster_means = {}
 for key in artist_cluster_sums:
     artist_cluster_means[key] = artist_cluster_sums[key][0] * 1.0 / artist_cluster_sums[key][1]
+    artist_cluster_means[key] = np.median(artist_cluster_sums[key][2:])
 
 user_cluster_means = {}
 for key in user_cluster_sums:
+
     user_cluster_means[key] = user_cluster_sums[key][0] * 1.0 / user_cluster_sums[key][1]
+    user_cluster_means[key] = np.median(user_cluster_sums[key[2:]])
 #print(artist_cluster_means)
 #print(user_cluster_means)
 
@@ -188,20 +199,24 @@ def predict(user,artist):
         #Yippeeeeeeeeee
         out = cluster_interaction_dict[(user_cluster,artist_cluster)]
     else:
-        interactions = []
-        for close_user in cluster_user_dict[user_cluster]:
-            for close_artist in cluster_art_dict[artist_cluster]:
-                #print close_user
-                #train_data[close_user]
-                if close_artist in train_data[close_user]:
-                    interactions.append(train_data[close_user][close_artist])
-        interSum = 0
-        if len(interactions) > 0:
-            interAvg = sum(interactions)*1.0/len(interactions)
-        else:
-            interAvg = global_median
-            #interAvg = user_medians[user] ################################################# can switch here to use user median default. also can increase threshold len(inters) > 0 to use this as only predictor
-        cluster_interaction_dict[(user_cluster,artist_cluster)] = interAvg
+        interAvg = user_medians[user]
+        #
+        # interactions = []
+        # for close_user in cluster_user_dict[user_cluster]:
+        #     for close_artist in cluster_art_dict[artist_cluster]:
+        #         #print close_user
+        #         #train_data[close_user]
+        #         if close_artist in train_data[close_user]:
+        #             interactions.append(train_data[close_user][close_artist])
+        # interSum = 0
+        # if len(interactions) > 0:
+        #     interAvg = sum(interactions)*1.0/len(interactions)
+        #     interMed = np.median(interactions)
+        #     interAvg = interMed
+        #     cluster_interaction_dict[(user_cluster,artist_cluster)] = interAvg
+        # else:
+        #     interAvg = global_median
+        #     interAvg = user_medians[user] ################################################# can switch here to use user median default. also can increase threshold len(inters) > 0 to use this as only predictor
         out = interAvg
 
 
