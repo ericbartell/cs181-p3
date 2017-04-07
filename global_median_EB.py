@@ -177,12 +177,11 @@ cluster_interaction_dict = {}
 def predict(user,artist):
     user_cluster = user_cluster_dict[user]
     artist_cluster = art_cluster_dict[artist]
-
+    scaling = 1.0*user_means[user] / user_cluster_means[user_cluster_dict[user]] * artist_means[artist] / artist_cluster_means[
+            art_cluster_dict[artist]]
     if (user_cluster,artist_cluster) in cluster_interaction_dict:
         #Yippeeeeeeeeee
         out = cluster_interaction_dict[(user_cluster,artist_cluster)]
-        out2 = out*user_means[user] / user_cluster_means[user_cluster_dict[user]] * artist_means[artist] * artist_cluster_means[
-            art_cluster_dict[artist]]
     else:
         interactions = []
         for close_user in cluster_user_dict[user_cluster]:
@@ -198,10 +197,9 @@ def predict(user,artist):
             interAvg = global_median
         cluster_interaction_dict[(user_cluster,artist_cluster)] = interAvg
         out = interAvg
-        out2 = out*user_means[user]/user_cluster_means[user_cluster_dict[user]]*artist_means[artist]*artist_cluster_means[art_cluster_dict[artist]]
 
 
-    return out,out2
+    return out,out*scaling
 def predict_a_lot(listUsers,listArtists):
     if len(listUsers) != len(listArtists):
         print "wtf bruh, list sizes are different"
@@ -210,7 +208,7 @@ def predict_a_lot(listUsers,listArtists):
         for i in range(len(listUsers)):
             predictions.append(predict(listUsers[i],listArtists[i]))
     return predictions
-#print(predict("306e19cce2522fa2d39ff5dfc870992100ec22d2","4ac4e32b-bd18-402e-adad-ae00e72f8d85"))
+print(predict("306e19cce2522fa2d39ff5dfc870992100ec22d2","4ac4e32b-bd18-402e-adad-ae00e72f8d85"))
 exit()
 
 
